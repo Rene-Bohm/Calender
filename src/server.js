@@ -3,7 +3,11 @@ require("dotenv").config();
 
 const express = require("express");
 
+const bucket = require("./BuckerServer");
+
 const app = express();
+
+bucket(app, "/bucket", "Data.json");
 
 app.use(express.static("public"));
 

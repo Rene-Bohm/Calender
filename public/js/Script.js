@@ -1,8 +1,4 @@
-let nav = 0; //Current month navigator
-let clicked = null; //Which day and month has been selected
-let events = localStorage.getItem("events")
-	? JSON.parse(localStorage.getItem("events"))
-	: [];
+let storage = new RemoteBucket("/bucket/1234");
 
 const calendar = document.getElementById("calendar");
 const newEventModal = document.getElementById("newEventModal");
@@ -19,6 +15,21 @@ const weekdays = [
 	"Saturday",
 	"Sunday",
 ];
+
+let nav;
+let clicked;
+let events;
+
+async function setUp() {
+	nav = 0; //Current month navigator
+	clicked = null; //Which day and month has been selected
+	events = (await storage.getItem("events"))
+		? JSON.parse(await storage.getItem("events"))
+		: [];
+
+	initButtons();
+	load();
+}
 
 function openModal(date) {
 	clicked = date;
@@ -101,7 +112,7 @@ function closeModal() {
 	load();
 }
 
-function saveEvent() {
+async function saveEvent() {
 	if (eventTitleInput.value) {
 		eventTitleInput.classList.remove("error");
 
@@ -110,7 +121,7 @@ function saveEvent() {
 			title: eventTitleInput.value,
 		});
 
-		localStorage.setItem("events", JSON.stringify(events));
+		await storage.setItem("events", JSON.stringify(events));
 
 		closeModal();
 	} else {
@@ -118,9 +129,9 @@ function saveEvent() {
 	}
 }
 
-function deleteEvent() {
+async function deleteEvent() {
 	events = events.filter((e) => e.date !== clicked);
-	localStorage.setItem("events", JSON.stringify(events));
+	await storage.setItem("events", JSON.stringify(events));
 	closeModal();
 }
 
@@ -150,5 +161,4 @@ function initButtons() {
 		.addEventListener("click", closeModal);
 }
 
-initButtons();
-load();
+setUp();
