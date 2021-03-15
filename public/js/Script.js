@@ -23,12 +23,14 @@ let events;
 async function setUp() {
 	nav = 0; //Current month navigator
 	clicked = null; //Which day and month has been selected
-	events = (await storage.getItem("events"))
-		? JSON.parse(await storage.getItem("events"))
-		: [];
+	events = [];
 
 	initButtons();
-	load();
+	await load();
+
+	setInterval(async () => {
+		await load();
+	}, 5000);
 }
 
 function openModal(date) {
@@ -45,7 +47,15 @@ function openModal(date) {
 	backDrop.style.display = "block";
 }
 
-function load() {
+async function load() {
+	console.log("Loading new data...");
+
+	try {
+		events = JSON.parse(await storage.getItems());
+	} catch {
+		events = [];
+	}
+
 	const dt = new Date();
 
 	if (nav !== 0) {
@@ -121,7 +131,7 @@ async function saveEvent() {
 			title: eventTitleInput.value,
 		});
 
-		await storage.setItem("events", JSON.stringify(events));
+		await storage.newEvent(clicked, eventTitleInput.value);
 
 		closeModal();
 	} else {
@@ -131,7 +141,7 @@ async function saveEvent() {
 
 async function deleteEvent() {
 	events = events.filter((e) => e.date !== clicked);
-	await storage.setItem("events", JSON.stringify(events));
+	await storage.removeItem(clicked);
 	closeModal();
 }
 
